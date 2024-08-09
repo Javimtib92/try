@@ -58,10 +58,9 @@ impl LineKind {
             LineKind::Type => "# [@type=",
             LineKind::Secret => "# [@secret=",
             LineKind::Policy => "# [@policy=",
-            LineKind::DefaultValue => "# [@default=",
             LineKind::Docs => "# [@docs=",
             LineKind::Description => "#",
-            LineKind::EnvVariable => "",
+            _ => "",
         }
     }
 
@@ -71,9 +70,8 @@ impl LineKind {
             | LineKind::Type
             | LineKind::Secret
             | LineKind::Policy
-            | LineKind::DefaultValue
             | LineKind::Docs => "]",
-            LineKind::EnvVariable | LineKind::Description => "",
+            _ => "",
         }
     }
 }
@@ -162,9 +160,6 @@ impl Line {
             _ if trimmed_data.starts_with(LineKind::Type.get_prefix()) => LineKind::Type,
             _ if trimmed_data.starts_with(LineKind::Secret.get_prefix()) => LineKind::Secret,
             _ if trimmed_data.starts_with(LineKind::Policy.get_prefix()) => LineKind::Policy,
-            _ if trimmed_data.starts_with(LineKind::DefaultValue.get_prefix()) => {
-                LineKind::DefaultValue
-            }
             _ if trimmed_data.starts_with(LineKind::Docs.get_prefix()) => LineKind::Docs,
 
             _ if trimmed_data.starts_with(LineKind::Description.get_prefix()) => {
@@ -215,7 +210,12 @@ fn main() {
                         LineKind::EnvVariable => {
                             let content = line_data.extract_content();
 
-                            output.add_at(line_data.kind.into(), content);
+                            // Splits env variable like NODE_ENV=development into two parts
+                            if let Some((key, value)) = content.split_once('=') {
+                                output.add_at(line_data.kind.into(), key.to_string());
+
+                                output.add_at(LineKind::DefaultValue.into(), value.to_string());
+                            }
 
                             write!(f, "{}", output.as_string())
                                 .expect("File could not be written.");
