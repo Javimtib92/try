@@ -35,7 +35,7 @@ struct Line {
 
 #[derive(Debug)]
 enum LineKind {
-    Value = 0,
+    EnvVariable = 0,
     Responsible = 1,
     Type = 2,
     Secret = 3,
@@ -61,7 +61,7 @@ impl LineKind {
             LineKind::DefaultValue => "# [@default=",
             LineKind::Docs => "# [@docs=",
             LineKind::Description => "#",
-            LineKind::Value => "",
+            LineKind::EnvVariable => "",
         }
     }
 
@@ -73,7 +73,7 @@ impl LineKind {
             | LineKind::Policy
             | LineKind::DefaultValue
             | LineKind::Docs => "]",
-            LineKind::Value | LineKind::Description => "",
+            LineKind::EnvVariable | LineKind::Description => "",
         }
     }
 }
@@ -119,7 +119,7 @@ impl Output {
         format!(
             "|{}|{}|{}|{}|{}|{}|{}|{}|\n",
             self.data
-                .get(&LineKind::Value.into())
+                .get(&LineKind::EnvVariable.into())
                 .unwrap_or(empty_string),
             self.data
                 .get(&LineKind::Responsible.into())
@@ -170,7 +170,7 @@ impl Line {
             _ if trimmed_data.starts_with(LineKind::Description.get_prefix()) => {
                 LineKind::Description
             }
-            _ => LineKind::Value,
+            _ => LineKind::EnvVariable,
         };
 
         return Self { data, kind };
@@ -212,7 +212,7 @@ fn main() {
                     let line_data = Line::new(line);
 
                     match line_data.kind {
-                        LineKind::Value => {
+                        LineKind::EnvVariable => {
                             let content = line_data.extract_content();
 
                             output.add_at(line_data.kind.into(), content);
