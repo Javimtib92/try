@@ -5,6 +5,9 @@ opt-level = "s"
 panic = "abort"
 strip = "symbols"
 
+[workspace]
+members = [".", "crates/*"]
+
 [package]
 name = "prometheus"
 version = "0.3.0"
