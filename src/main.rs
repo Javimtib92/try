@@ -213,8 +213,13 @@ fn main() {
                 let mut output = Output::new();
 
                 for line in lines.flatten() {
+                    if line.is_empty() || line.trim() == "#" {
+                        continue;
+                    }
+
                     let line_data = Line::new(line);
 
+                    println!("{:?}", line_data);
                     let content = line_data.extract_content();
 
                     match line_data.kind {
@@ -234,12 +239,12 @@ fn main() {
                         LineKind::Responsible => {
                             output.add_at(FieldKind::Responsible.into(), content)
                         }
-                        LineKind::Type => output.add_at(FieldKind::Responsible.into(), content),
-                        LineKind::Policy => output.add_at(FieldKind::Responsible.into(), content),
-                        LineKind::Secret => output.add_at(FieldKind::Responsible.into(), content),
+                        LineKind::Type => output.add_at(FieldKind::Type.into(), content),
+                        LineKind::Policy => output.add_at(FieldKind::Policy.into(), content),
+                        LineKind::Secret => output.add_at(FieldKind::Secret.into(), content),
                         LineKind::Docs => output.add_at(FieldKind::Docs.into(), content),
                         LineKind::Description => {
-                            output.add_at(FieldKind::Responsible.into(), content)
+                            output.add_at(FieldKind::Description.into(), content)
                         }
                     };
                 }
