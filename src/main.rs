@@ -55,7 +55,7 @@ impl Line {
             _ => LineKind::EnvVariable,
         };
 
-        return Self { data, kind };
+        Self { data, kind }
     }
 
     pub fn extract_content(&self) -> String {
@@ -157,14 +157,12 @@ impl Output {
     /// assert_eq!(output.get(&1), Some(&"hello,world"));
     /// ```
     pub fn add_at(&mut self, index: u8, value: String) {
-        if self.contains_key(&index) {
-            if let Some(stored_value) = self.get_mut(&index) {
-                stored_value.push_str(",");
+        self.entry(index)
+            .and_modify(|stored_value| {
+                stored_value.push(',');
                 stored_value.push_str(value.as_str());
-            }
-        } else {
-            self.insert(index, value);
-        }
+            })
+            .or_insert(value);
     }
 
     pub fn as_string(&self) -> String {
@@ -210,7 +208,7 @@ fn main() {
 
                 let mut output = Output::new();
 
-                for line in lines.flatten() {
+                for line in lines.map_while(Result::ok) {
                     if line.is_empty() || line.trim() == "#" {
                         continue;
                     }
