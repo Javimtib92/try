@@ -1,5 +1,3 @@
-#![feature(string_remove_matches)]
-
 use std::{
     collections::HashMap,
     fs::File,
