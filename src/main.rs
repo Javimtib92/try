@@ -35,20 +35,13 @@ struct Line {
 
 #[derive(Debug)]
 enum LineKind {
-    EnvVariable = 0,
-    Responsible = 1,
-    Type = 2,
-    Secret = 3,
-    Policy = 4,
-    DefaultValue = 5,
-    Description = 6,
-    Docs = 7,
-}
-
-impl From<LineKind> for u8 {
-    fn from(lk: LineKind) -> u8 {
-        lk as u8
-    }
+    EnvVariable,
+    Responsible,
+    Type,
+    Secret,
+    Policy,
+    Description,
+    Docs,
 }
 
 impl LineKind {
@@ -73,6 +66,24 @@ impl LineKind {
             | LineKind::Docs => "]",
             _ => "",
         }
+    }
+}
+
+#[derive(Debug)]
+enum FieldKind {
+    EnvVariable = 0,
+    Responsible = 1,
+    Type = 2,
+    Secret = 3,
+    Policy = 4,
+    DefaultValue = 5,
+    Description = 6,
+    Docs = 7,
+}
+
+impl From<FieldKind> for u8 {
+    fn from(lk: FieldKind) -> u8 {
+        lk as u8
     }
 }
 
@@ -117,28 +128,28 @@ impl Output {
         format!(
             "|{}|{}|{}|{}|{}|{}|{}|{}|\n",
             self.data
-                .get(&LineKind::EnvVariable.into())
+                .get(&FieldKind::EnvVariable.into())
                 .unwrap_or(empty_string),
             self.data
-                .get(&LineKind::Responsible.into())
+                .get(&FieldKind::Responsible.into())
                 .unwrap_or(empty_string),
             self.data
-                .get(&LineKind::Type.into())
+                .get(&FieldKind::Type.into())
                 .unwrap_or(empty_string),
             self.data
-                .get(&LineKind::Secret.into())
+                .get(&FieldKind::Secret.into())
                 .unwrap_or(empty_string),
             self.data
-                .get(&LineKind::Policy.into())
+                .get(&FieldKind::Policy.into())
                 .unwrap_or(empty_string),
             self.data
-                .get(&LineKind::DefaultValue.into())
+                .get(&FieldKind::DefaultValue.into())
                 .unwrap_or(empty_string),
             self.data
-                .get(&LineKind::Description.into())
+                .get(&FieldKind::Description.into())
                 .unwrap_or(empty_string),
             self.data
-                .get(&LineKind::Docs.into())
+                .get(&FieldKind::Docs.into())
                 .unwrap_or(empty_string),
         )
     }
@@ -161,7 +172,6 @@ impl Line {
             _ if trimmed_data.starts_with(LineKind::Secret.get_prefix()) => LineKind::Secret,
             _ if trimmed_data.starts_with(LineKind::Policy.get_prefix()) => LineKind::Policy,
             _ if trimmed_data.starts_with(LineKind::Docs.get_prefix()) => LineKind::Docs,
-
             _ if trimmed_data.starts_with(LineKind::Description.get_prefix()) => {
                 LineKind::Description
             }
@@ -206,15 +216,15 @@ fn main() {
                 for line in lines.flatten() {
                     let line_data = Line::new(line);
 
+                    let content = line_data.extract_content();
+
                     match line_data.kind {
                         LineKind::EnvVariable => {
-                            let content = line_data.extract_content();
-
                             // Splits env variable like NODE_ENV=development into two parts
                             if let Some((key, value)) = content.split_once('=') {
-                                output.add_at(line_data.kind.into(), key.to_string());
+                                output.add_at(FieldKind::EnvVariable.into(), key.to_string());
 
-                                output.add_at(LineKind::DefaultValue.into(), value.to_string());
+                                output.add_at(FieldKind::DefaultValue.into(), value.to_string());
                             }
 
                             write!(f, "{}", output.as_string())
@@ -222,10 +232,15 @@ fn main() {
 
                             output.data.clear();
                         }
-                        _ => {
-                            let content = line_data.extract_content();
-
-                            output.add_at(line_data.kind.into(), content)
+                        LineKind::Responsible => {
+                            output.add_at(FieldKind::Responsible.into(), content)
+                        }
+                        LineKind::Type => output.add_at(FieldKind::Responsible.into(), content),
+                        LineKind::Policy => output.add_at(FieldKind::Responsible.into(), content),
+                        LineKind::Secret => output.add_at(FieldKind::Responsible.into(), content),
+                        LineKind::Docs => output.add_at(FieldKind::Docs.into(), content),
+                        LineKind::Description => {
+                            output.add_at(FieldKind::Responsible.into(), content)
                         }
                     };
                 }
