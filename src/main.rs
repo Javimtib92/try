@@ -4,10 +4,16 @@ use std::{
     collections::HashMap,
     fs::File,
     io::{BufWriter, Write},
+    ops::{Deref, DerefMut},
 };
 
 use clap::{Parser, Subcommand};
 use prometheus::fs::read_lines;
+
+const ENV_FILE_HEADERS: &str =
+    "| Key | Responsible | Type | Secret | Policy | Default value | Description | Docs |";
+
+const ENV_FILE_HEADER_SEPARATOR: &str = "| --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- |";
 
 #[derive(Debug, Parser)]
 #[command(name = "milu")]
@@ -31,6 +37,37 @@ enum Commands {
 struct Line {
     data: String,
     kind: LineKind,
+}
+
+impl Line {
+    pub fn new(data: String) -> Self {
+        let trimmed_data = data.trim();
+
+        let kind = match trimmed_data {
+            _ if trimmed_data.starts_with(LineKind::Responsible.get_prefix()) => {
+                LineKind::Responsible
+            }
+            _ if trimmed_data.starts_with(LineKind::Type.get_prefix()) => LineKind::Type,
+            _ if trimmed_data.starts_with(LineKind::Secret.get_prefix()) => LineKind::Secret,
+            _ if trimmed_data.starts_with(LineKind::Policy.get_prefix()) => LineKind::Policy,
+            _ if trimmed_data.starts_with(LineKind::Docs.get_prefix()) => LineKind::Docs,
+            _ if trimmed_data.starts_with(LineKind::Description.get_prefix()) => {
+                LineKind::Description
+            }
+            _ => LineKind::EnvVariable,
+        };
+
+        return Self { data, kind };
+    }
+
+    pub fn extract_content(&self) -> String {
+        self.data
+            .strip_prefix(self.kind.get_prefix())
+            .unwrap_or(&self.data)
+            .strip_suffix(self.kind.get_suffix())
+            .unwrap_or(&self.data)
+            .to_string()
+    }
 }
 
 #[derive(Debug)]
@@ -87,15 +124,25 @@ impl From<FieldKind> for u8 {
     }
 }
 
-struct Output {
-    data: HashMap<u8, String>,
+struct Output(HashMap<u8, String>);
+
+impl Deref for Output {
+    type Target = HashMap<u8, String>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Output {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
 }
 
 impl Output {
     pub fn new() -> Self {
-        Output {
-            data: HashMap::with_capacity(8),
-        }
+        Output(HashMap::with_capacity(8))
     }
 
     /// Given a a HashMap index inserts an element into the Output HashMap. If a value is already
@@ -112,13 +159,13 @@ impl Output {
     /// assert_eq!(output.get(&1), Some(&"hello,world"));
     /// ```
     pub fn add_at(&mut self, index: u8, value: String) {
-        if self.data.contains_key(&index) {
-            if let Some(stored_value) = self.data.get_mut(&index) {
+        if self.contains_key(&index) {
+            if let Some(stored_value) = self.get_mut(&index) {
                 stored_value.push_str(",");
                 stored_value.push_str(value.as_str());
             }
         } else {
-            self.data.insert(index, value);
+            self.insert(index, value);
         }
     }
 
@@ -127,67 +174,19 @@ impl Output {
 
         format!(
             "|{}|{}|{}|{}|{}|{}|{}|{}|\n",
-            self.data
-                .get(&FieldKind::EnvVariable.into())
+            self.get(&FieldKind::EnvVariable.into())
                 .unwrap_or(empty_string),
-            self.data
-                .get(&FieldKind::Responsible.into())
+            self.get(&FieldKind::Responsible.into())
                 .unwrap_or(empty_string),
-            self.data
-                .get(&FieldKind::Type.into())
+            self.get(&FieldKind::Type.into()).unwrap_or(empty_string),
+            self.get(&FieldKind::Secret.into()).unwrap_or(empty_string),
+            self.get(&FieldKind::Policy.into()).unwrap_or(empty_string),
+            self.get(&FieldKind::DefaultValue.into())
                 .unwrap_or(empty_string),
-            self.data
-                .get(&FieldKind::Secret.into())
+            self.get(&FieldKind::Description.into())
                 .unwrap_or(empty_string),
-            self.data
-                .get(&FieldKind::Policy.into())
-                .unwrap_or(empty_string),
-            self.data
-                .get(&FieldKind::DefaultValue.into())
-                .unwrap_or(empty_string),
-            self.data
-                .get(&FieldKind::Description.into())
-                .unwrap_or(empty_string),
-            self.data
-                .get(&FieldKind::Docs.into())
-                .unwrap_or(empty_string),
+            self.get(&FieldKind::Docs.into()).unwrap_or(empty_string),
         )
-    }
-}
-
-const ENV_FILE_HEADERS: &str =
-    "| Key | Responsible | Type | Secret | Policy | Default value | Description | Docs |";
-
-const ENV_FILE_HEADER_SEPARATOR: &str = "| --------- | --------- | --------- | --------- | --------- | --------- | --------- | --------- |";
-
-impl Line {
-    pub fn new(data: String) -> Self {
-        let trimmed_data = data.trim();
-
-        let kind = match trimmed_data {
-            _ if trimmed_data.starts_with(LineKind::Responsible.get_prefix()) => {
-                LineKind::Responsible
-            }
-            _ if trimmed_data.starts_with(LineKind::Type.get_prefix()) => LineKind::Type,
-            _ if trimmed_data.starts_with(LineKind::Secret.get_prefix()) => LineKind::Secret,
-            _ if trimmed_data.starts_with(LineKind::Policy.get_prefix()) => LineKind::Policy,
-            _ if trimmed_data.starts_with(LineKind::Docs.get_prefix()) => LineKind::Docs,
-            _ if trimmed_data.starts_with(LineKind::Description.get_prefix()) => {
-                LineKind::Description
-            }
-            _ => LineKind::EnvVariable,
-        };
-
-        return Self { data, kind };
-    }
-
-    pub fn extract_content(&self) -> String {
-        self.data
-            .strip_prefix(self.kind.get_prefix())
-            .unwrap_or(&self.data)
-            .strip_suffix(self.kind.get_suffix())
-            .unwrap_or(&self.data)
-            .to_string()
     }
 }
 
@@ -230,7 +229,7 @@ fn main() {
                             write!(f, "{}", output.as_string())
                                 .expect("File could not be written.");
 
-                            output.data.clear();
+                            output.clear();
                         }
                         LineKind::Responsible => {
                             output.add_at(FieldKind::Responsible.into(), content)
