@@ -11,6 +11,8 @@ defaults:
 jobs:
   create-release-branch:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,11 +52,15 @@ jobs:
       - name: Push the new branch
         run: git push origin ${{ steps.branch_name.outputs.branch_name }}
 
-      - name: Create PR
-        uses: peter-evans/create-pull-request@v6
-        with:
-          delete-branch: true
-          base: "main"
-          title: "Release ${VERSION}"
-          body: |
-            Preparing next release. This PR has been auto-generated.
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get install gh
+
+      - name: Create Pull Request
+        run: |
+          gh pr create \
+            --title "Release ${VERSION}" \
+            --body "This PR updates the version in Cargo.toml to ${VERSION}." \
+            --base main \
+            --head ${{ steps.branch_name.outputs.branch_name }} \
+            --delete-branch
