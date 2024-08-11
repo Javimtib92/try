@@ -47,7 +47,7 @@ jobs:
       - name: Commit changes
         run: |
           git add Cargo.toml Cargo.lock
-          git commit -m "Update Cargo.toml version to ${{ github.event.ref#refs/tags/v }}"
+          git commit -m "Update Cargo.toml version to ${VERSION}"
 
       - name: Push the new branch
         run: git push origin ${{ steps.branch_name.outputs.branch_name }}
