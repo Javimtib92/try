@@ -11,8 +11,9 @@ defaults:
 
 jobs:
   create-release-branch:
+    if: ${{github.event.release.prerelease}}
+
     runs-on: ubuntu-latest
-    if: github.event.release.prerelease == true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
