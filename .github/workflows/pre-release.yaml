@@ -10,6 +10,9 @@ defaults:
 
 jobs:
   create-release-branch:
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -42,12 +45,22 @@ jobs:
           # Update lockfile
           cargo generate-lockfile
 
-      - name: Create PR
-        uses: peter-evans/create-pull-request@v6
-        with:
-          delete-branch: true
-          commit-message: "Update Cargo.toml version to ${VERSION}"
-          base: "main"
-          title: "Release ${VERSION}"
-          body: |
-            Preparing next release. This PR has been auto-generated.
+      - name: Commit changes
+        run: |
+          git add Cargo.toml Cargo.lock
+          git commit -m "Update Cargo.toml version to ${VERSION}"
+
+      - name: Push the new branch
+        run: git push origin ${{ steps.branch_name.outputs.branch_name }}
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get install gh
+
+      - name: Create Pull Request
+        run: |
+          gh pr create \
+            --title "Release ${VERSION}" \
+            --body "This PR updates the version in Cargo.toml to ${VERSION}." \
+            --base main \
+            --head ${{ steps.branch_name.outputs.branch_name }}
