@@ -31,11 +31,8 @@ cp -r \
   $EXECUTABLE \
   Cargo.lock \
   Cargo.toml \
-  GRAMMAR.md \
   LICENSE \
   README.md \
-  completions \
-  man/prometheus.1 \
   $DIST
 
 cd $DIST
