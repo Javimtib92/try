@@ -1,0 +1,47 @@
+name: Create Release Branch
+
+on:
+  push:
+    tags:
+      - "*"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  create-release-branch:
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.ref, 'refs/tags/') && github.event.release.prerelease == false && github.event.release.draft == false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Determine release branch name
+        id: branch_name
+        run: echo "::set-output name=branch_name::release-${GITHUB_REF##*/}"
+
+      - name: Create and switch to the new branch
+        run: git checkout -b ${{ steps.branch_name.outputs.branch_name }}
+
+      - name: Update Cargo.toml version
+        run: |
+          # Extract the version number from the tag
+          version=${GITHUB_REF#refs/tags/}
+          # Update the Cargo.toml version using sed (or an alternative method if you prefer)
+          sed -i "s/^version = \".*\"$/version = \"$version\"/" Cargo.toml
+          # Update lockfile
+          cargo generate-lockfile
+
+      - name: Commit changes
+        run: |
+          git add Cargo.toml Cargo.lock
+          git commit -m "Update Cargo.toml version to ${{ github.event.ref#refs/tags/ }}"
+
+      - name: Push the new branch
+        run: git push origin ${{ steps.branch_name.outputs.branch_name }}
