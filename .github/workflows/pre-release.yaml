@@ -11,7 +11,7 @@ defaults:
 
 jobs:
   create-release-branch:
-    if: ${{github.event.release.prerelease}}
+    if: ${{github.event.release.prerelease == true}}
 
     runs-on: ubuntu-latest
     steps:

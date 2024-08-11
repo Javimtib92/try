@@ -11,7 +11,7 @@ defaults:
 
 jobs:
   release:
-    if: ${{!github.event.release.prerelease}}
+    if: ${{github.event.release.prerelease == false}}
 
     strategy:
       matrix:
