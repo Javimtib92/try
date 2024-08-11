@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
+  release:
+    types: [released]
 
 defaults:
   run:
@@ -11,8 +13,6 @@ defaults:
 
 jobs:
   release:
-    if: ${{github.event.release.prerelease == false}}
-
     strategy:
       matrix:
         target:

@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
+  release:
+    types: [prereleased]
 
 defaults:
   run:
@@ -11,8 +13,6 @@ defaults:
 
 jobs:
   create-release-branch:
-    if: ${{github.event.release.prerelease == true}}
-
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
