@@ -12,7 +12,7 @@ defaults:
 jobs:
   create-release-branch:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.ref, 'refs/tags/') && github.event.release.prerelease == false && github.event.release.draft == false
+    if: startsWith(github.event.ref, 'refs/tags/') && github.event.release.prerelease == true && github.event.release.draft == false
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

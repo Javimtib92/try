@@ -11,6 +11,7 @@ defaults:
 
 jobs:
   release:
+    if: startsWith(github.event.ref, 'refs/tags/') && github.event.release.prerelease == false && github.event.release.draft == false
     strategy:
       matrix:
         target:
