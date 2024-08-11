@@ -45,9 +45,6 @@ jobs:
       - name: Create PR
         uses: peter-evans/create-pull-request@v6
         with:
-          add-paths: |
-            Cargo.toml
-            Cargo.lock
           branch: ${{ steps.branch_name.outputs.branch_name }}
           delete-branch: true
           commit-message: "Update Cargo.toml version to ${VERSION}"
