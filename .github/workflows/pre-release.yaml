@@ -29,12 +29,18 @@ jobs:
       - name: Create and switch to the new branch
         run: git checkout -b ${{ steps.branch_name.outputs.branch_name }}
 
+      - name: Write release version
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo Version: $VERSION
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Update Cargo.toml version
         run: |
-          # Extract the version number from the tag
-          version=${GITHUB_REF#refs/tags/v}
-          # Update the Cargo.toml version using sed (or an alternative method if you prefer)
-          sed -i "s/^version = \".*\"$/version = \"$version\"/" Cargo.toml
+          # Update the Cargo.toml version using sed
+          # For Linux
+          sed -i "s/^version = \".*\"$/version = \"${VERSION}\"/" Cargo.toml
+
           # Update lockfile
           cargo generate-lockfile
 
