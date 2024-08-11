@@ -49,3 +49,12 @@ jobs:
 
       - name: Push the new branch
         run: git push origin ${{ steps.branch_name.outputs.branch_name }}
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          delete-branch: true
+          base: "main"
+          title: "Release ${VERSION}"
+          body: |
+            Preparing next release. This PR has been auto-generated.
