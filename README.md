@@ -1,4 +1,4 @@
-## Prometheus
+## Papyrust
 
 Prometheus is a command-line interface (CLI) tool to simplify and automate a variety of tasks that are otherwise tedious and time-consuming.
 
