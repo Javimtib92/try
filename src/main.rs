@@ -31,6 +31,7 @@ enum Commands {
     },
 }
 
+/// This struct represents a line from the .env file being parsed
 #[derive(Debug)]
 struct Line {
     data: String,
@@ -58,6 +59,7 @@ impl Line {
         Self { data, kind }
     }
 
+    /// Extracts the contents of the parsed line
     pub fn extract_content(&self) -> String {
         self.data
             .strip_prefix(self.kind.get_prefix())
@@ -122,6 +124,7 @@ impl From<FieldKind> for u8 {
     }
 }
 
+/// Represents a table row output
 struct Output(HashMap<u8, String>);
 
 impl Deref for Output {
@@ -143,7 +146,7 @@ impl Output {
         Output(HashMap::with_capacity(8))
     }
 
-    /// Given a a HashMap index inserts an element into the Output HashMap. If a value is already
+    /// Inserts an element into the Output HashMap at the specified index. If a value is already
     /// present in this index it will concatenate it using "," separator.
     ///
     /// # Examples
@@ -165,6 +168,8 @@ impl Output {
             .or_insert(value);
     }
 
+    /// Prints the row in the following format:
+    /// | MAGENTO_BACKEND_URL | DevOps | permanent | yes | mantain | development | description | docs_link |
     pub fn as_string(&self) -> String {
         let empty_string = &String::default();
 
@@ -188,12 +193,12 @@ impl Output {
 
 fn main() {
     let args = Cli::parse();
-    // Explanation: Command script gathers line by line until it reaches a value and then outputs all that it gathered into one table. Then it starts over.
+    // Command script gathers line by line until it reaches a value and then outputs all that it gathered into one table row. It continues until it prints all rows in a table.
     //
     // EXPECTED OUTPUT:
     //
     // | Key      | Responsible | Type | Secret | Policy | Default value | Description | Docs |
-    // | LINE_VAL | | | | | | DOCSTRINGS | |
+    // | MAGENTO_BACKEND_URL | DevOps | permanent | yes | mantain | development | description | docs_link |
 
     match args.command {
         Commands::GenerateEnvDocs { file } => {
