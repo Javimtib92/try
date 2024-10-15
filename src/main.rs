@@ -169,6 +169,7 @@ impl Output {
     }
 
     /// Prints the row in the following format:
+    ///
     /// | MAGENTO_BACKEND_URL | DevOps | permanent | yes | mantain | development | description | docs_link |
     pub fn as_string(&self) -> String {
         let empty_string = &String::default();
@@ -202,12 +203,12 @@ fn main() {
 
     match args.command {
         Commands::GenerateEnvDocs { file } => {
-            let output_file = File::create("environment-variables.md")
-                .expect("File environment-variables.md could not be created.");
-
-            let mut f = BufWriter::new(output_file);
-
             if let Ok(lines) = read_lines(file) {
+                let output_file = File::create("environment-variables.md")
+                    .expect("File environment-variables.md could not be created.");
+
+                let mut f = BufWriter::new(output_file);
+
                 write!(f, "{}\n{}\n", ENV_FILE_HEADERS, ENV_FILE_HEADER_SEPARATOR)
                     .expect("File could not be written.");
 
@@ -220,10 +221,20 @@ fn main() {
 
                     let line_data = Line::new(line);
 
-                    println!("{:?}", line_data);
                     let content = line_data.extract_content();
 
                     match line_data.kind {
+                        LineKind::Responsible => {
+                            output.add_at(FieldKind::Responsible.into(), content)
+                        }
+                        LineKind::Type => output.add_at(FieldKind::Type.into(), content),
+                        LineKind::Policy => output.add_at(FieldKind::Policy.into(), content),
+                        LineKind::Secret => output.add_at(FieldKind::Secret.into(), content),
+                        LineKind::Docs => output.add_at(FieldKind::Docs.into(), content),
+                        LineKind::Description => {
+                            output.add_at(FieldKind::Description.into(), content)
+                        }
+                        // Env variable definition is always the last line
                         LineKind::EnvVariable => {
                             // Splits env variable like NODE_ENV=development into two parts
                             if let Some((key, value)) = content.split_once('=') {
@@ -236,16 +247,6 @@ fn main() {
                                 .expect("File could not be written.");
 
                             output.clear();
-                        }
-                        LineKind::Responsible => {
-                            output.add_at(FieldKind::Responsible.into(), content)
-                        }
-                        LineKind::Type => output.add_at(FieldKind::Type.into(), content),
-                        LineKind::Policy => output.add_at(FieldKind::Policy.into(), content),
-                        LineKind::Secret => output.add_at(FieldKind::Secret.into(), content),
-                        LineKind::Docs => output.add_at(FieldKind::Docs.into(), content),
-                        LineKind::Description => {
-                            output.add_at(FieldKind::Description.into(), content)
                         }
                     };
                 }
