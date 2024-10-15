@@ -1,6 +1,6 @@
-## Papyrust
+## Try
 
-Papyrust is a command-line interface (CLI) tool to simplify and automate a variety of tasks that are otherwise tedious and time-consuming.
+Try is a command-line interface (CLI) tool to simplify and automate a variety of tasks that are otherwise tedious and time-consuming.
 
 ## Code style
 
@@ -19,11 +19,11 @@ Pre-built binaries for Linux, MacOS, and Windows can be found on [the releases p
 
 ### Building from source
 
-If you'd prefer to build Papyrust from source, ensure you have Rust installed on your machine. Clone the repository and run the following commands:
+If you'd prefer to build Try from source, ensure you have Rust installed on your machine. Clone the repository and run the following commands:
 
 ```bash
-git clone https://github.com/Javimtib92/papyrust
-cd papyrust
+git clone https://github.com/Javimtib92/try
+cd try
 cargo build --release
 ```
 
@@ -31,20 +31,20 @@ This will generate a binary in the target/release directory, which you can then 
 
 ## How to use?
 
-Using Papyrust is straightforward. After installation, simply invoke papyrust from your terminal, followed by the command you wish to execute. For example:
+Using Try is straightforward. After installation, simply invoke Try from your terminal, followed by the command you wish to execute. For example:
 
 ```bash
-papyrust your-command
+try your-command
 ```
 
 For a full list of available commands and their options, you can use the help flag:
 
 
 ```bash
-papyrust --help
+try --help
 ```
 
 ## License
-Papyrust is licensed under the MIT License. See the [LICENSE](./LICENSE) file for more details.
+Try is licensed under the MIT License. See the [LICENSE](./LICENSE) file for more details.
 
 MIT © [Javier Muñoz Tous](https://github.com/Javimtib92)
